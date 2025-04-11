@@ -1,5 +1,5 @@
 
-FROM python:recommendations
+FROM python:3.13.3-bullseye
 
 WORKDIR /app
 
