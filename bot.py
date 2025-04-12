@@ -196,6 +196,10 @@ async def handle_media_entry(update: Update, context: ContextTypes.DEFAULT_TYPE)
         media_public_url = f"{SUPABASE_URL.rstrip('/')}/storage/v1/object/public/{SUPABASE_BUCKET_NAME}/{storage_path}"
         logger.info(f"{media_type.capitalize()} uploaded. Public URL: {media_public_url}")
 
+        context.user_data['storage_path'] = storage_path    # Save relative path for DB insertion
+        context.user_data['media_public_url'] = media_public_url
+        context.user_data['supabase_user_id'] = supabase_user_id
+
         # --- Prepare Data for AI (Extract Frame if Video) ---
         bytes_for_ai = None
         if media_type == 'photo':
@@ -291,7 +295,7 @@ async def received_description(update: Update, context: ContextTypes.DEFAULT_TYP
     
     media_bytes_for_ai = context.user_data.get('media_bytes_for_ai')
     keywords = []
-    if media_bytes_for_ai:
+    if (media_bytes_for_ai):
         keywords = await get_image_keywords_openai(media_bytes_for_ai)
         if not keywords:
             logger.warning("AI keyword generation failed or returned empty.")
