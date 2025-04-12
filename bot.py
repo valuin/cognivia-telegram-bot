@@ -41,6 +41,17 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Hi! Send /login to authenticate, then send me images."
     )
     
+async def exit_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Logs the user out by removing their ID from authenticated_users."""
+    user_id = update.effective_user.id
+    if user_id in authenticated_users:
+        del authenticated_users[user_id]
+        logger.info(f"User {user_id} logged out.")
+        await update.message.reply_text("You have been logged out.")
+    else:
+        logger.info(f"User {user_id} attempted /exit but was not logged in.")
+        await update.message.reply_text("You are not currently logged in.")
+    
 async def login_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Starts the login conversation."""
     await update.message.reply_text("Please enter your email address:")
@@ -500,6 +511,7 @@ if __name__ == '__main__':
         application.add_handler(post_conv_handler) # Handles photo entry for the post conversation
 
         application.add_handler(CommandHandler("start", start))
+        application.add_handler(CommandHandler("exit", exit_command))
         application.add_error_handler(error_handler)
 
         # --- Start the Bot ---
