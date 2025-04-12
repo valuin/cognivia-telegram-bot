@@ -328,13 +328,13 @@ async def received_date(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     processing_msg = await update.message.reply_text("Saving your memory post...")
     
     # Retrieve all stored data
-    media_public_url = context.user_data.get('media_public_url')
+    storage_path = context.user_data.get('storage_path')
     title = context.user_data.get('title')
     description = context.user_data.get('description')
     supabase_user_id = context.user_data.get('supabase_user_id')
     keywords = context.user_data.get('keywords', [])
     
-    if not all([media_public_url, title, description, supabase_user_id]):
+    if not all([storage_path, title, description, supabase_user_id]):
         logger.error("Missing essential data in conversation context. Cannot proceed.")
         await processing_msg.edit_text("Sorry, something went wrong. Please try again.")
         context.user_data.clear()
@@ -343,7 +343,7 @@ async def received_date(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     # --- Insert into Database ---
     insert_success = await insert_post_to_supabase(
         supabase_user_id=supabase_user_id,
-        image_public_url=media_public_url,
+        image_storage_path=storage_path,
         title=title,
         description=description,
         keywords=keywords  # Pass potentially empty list
@@ -444,7 +444,7 @@ async def get_image_keywords_openai(image_bytes: bytes) -> list[str]:
 
 async def insert_post_to_supabase(
     supabase_user_id: str,
-    image_public_url: str,
+    image_storage_path: str,
     title: str,
     description: str,
     keywords: list[str]
@@ -457,7 +457,7 @@ async def insert_post_to_supabase(
 
     post_data = {
         'user_id': supabase_user_id, # Ensure this matches the foreign key to your auth.users table
-        'image': image_public_url,   # Column for the image URL
+        'image': image_storage_path,   # Column for the image URL
         'title': title,
         'caption': description,
         'memory_word': keywords_string # Column for keywords
